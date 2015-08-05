@@ -2,7 +2,7 @@
 #include "Intersection.h"
 #include "Light.h"
 
-#define NB_SHADOW_SAMPLE 256
+#define NB_SHADOW_SAMPLE 16
 
 Raytracer::Raytracer(int width, int height)
 	: _width(width),
@@ -82,12 +82,26 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentReflectLevel, int m
 			reflectedRay.rd = reflect(r.rd, i.normal);
 			reflectedRay.ro = i.position + 0.01f * reflectedRay.rd;
 			vec3 reflectedColor = traceSingleRay(reflectedRay, currentReflectLevel+1, maxReflectLevel);
-
 			
 			//reflectedColor *= fresnel;
 			//reflectedColor += (vec3(1.0f) - reflectedColor) * result;
 
 			result = mix(result, reflectedColor, i.obj->material.reflectivity * fresnel);
+		}
+
+		if (i.obj->material.refractionFactor > 0.0f)
+		{
+			Ray refractedRay;
+			refractedRay.rd = refract(r.rd, i.normal, i.obj->material.IOR);
+			refractedRay.ro = i.position + 0.01f * refractedRay.rd;
+			vec3 refractedColor = traceSingleRay(refractedRay, currentReflectLevel, maxReflectLevel);
+			if (i.intersects)
+			{
+				refractedRay.rd = refract(refractedRay.rd, i.normal, i.obj->material.IOR);
+				refractedRay.ro = i.position + 0.01f * refractedRay.rd;
+				vec3 rerefractedColor = traceSingleRay(refractedRay, currentReflectLevel, maxReflectLevel);
+				result = mix(result, rerefractedColor, i.obj->material.reflectivity);
+			}
 		}
 	}
 

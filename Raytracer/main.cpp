@@ -16,10 +16,10 @@
 #include <omp.h>
 #include <chrono>
 
-#define WINDOW_WIDTH 1024
-#define WINDOW_HEIGHT 768
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
 
-#define MAX_REFLECT_BOUNCES 5
+#define MAX_REFLECT_BOUNCES 1
 
 void onKeyPressed(GLFWwindow* w, int key, int scancode, int action, int mods)
 {
@@ -88,6 +88,8 @@ int main(int argc, char** argv)
 	s2.material.albedo = vec3(1.0f, 0.5f, 0.5f);
 	s2.material.shininess = 512.0f;
 	s2.material.reflectivity = 1.0f;
+	s2.material.IOR = 1.3333f;
+	s2.material.refractionFactor = 1.0f;
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
 
