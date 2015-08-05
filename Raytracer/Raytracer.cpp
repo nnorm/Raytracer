@@ -74,44 +74,51 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 
 	if (i.intersects)
 	{
-		result = glm::clamp(_computeLighting(i, r.ro), glm::vec3(0.0f), glm::vec3(1.0f));
+		vec3 diffuseLighting, specularLighting;
+
+		_computeLighting(i, r.ro, diffuseLighting, specularLighting);
 
 		if (i.obj->material.refractionFactor > 0.0f && currentDepthLevel < maxDepthLevel)
 		{
 			Ray refractedRay;
 
-			float ior = 1.0f / i.obj->material.IOR;
+			float ior = i.obj->material.IOR;
 
 			// If we're inside the object, just invert IOR
-			if (glm::dot(i.normal, -r.rd) < 0.0f)
-				ior = 1.0f / ior;
+			if (glm::dot(i.normal, r.rd) > 0.0f)
+				refractedRay.rd = refract(r.rd, -i.normal, 1.0f / ior);
+			else
+				refractedRay.rd = refract(r.rd, i.normal, ior);
 
-			refractedRay.rd = refract(-r.rd, i.normal, ior);
 			refractedRay.ro = i.position + 0.01f * refractedRay.rd;
 
+
 			vec3 refractedColor = traceSingleRay(refractedRay, currentDepthLevel + 1, maxDepthLevel);
-			result = clamp(mix(result, refractedColor, i.obj->material.refractionFactor), vec3(0.0f), vec3(1.0f));
+			diffuseLighting = mix(refractedColor, diffuseLighting, 1.0f - i.obj->material.refractionFactor);
 		}
 
 		if (i.obj->material.reflectivity > 0.0f && currentDepthLevel < maxDepthLevel)
 		{
-			vec3 fresnel = glm::mix(i.obj->material.F0, vec3(1.0f), max(0.0f, powf(1.0f - glm::dot(-r.rd, i.normal), 5.0f)));
-
 			Ray reflectedRay;
 			reflectedRay.rd = reflect(r.rd, i.normal);
 			reflectedRay.ro = i.position + 0.01f * reflectedRay.rd;
 			vec3 reflectedColor = traceSingleRay(reflectedRay, currentDepthLevel+1, maxDepthLevel);
 			
-			result = clamp(mix(result, reflectedColor, i.obj->material.reflectivity * fresnel), vec3(0.0f), vec3(1.0f));
+			specularLighting += reflectedColor * i.obj->material.reflectivity;
 		}
+
+		vec3 fresnel = glm::mix(i.obj->material.F0, vec3(1.0f), max(0.0f, powf(1.0f - glm::dot(-r.rd, i.normal), 5.0f)));
+		result = mix(diffuseLighting, specularLighting, fresnel);
 	}
 
 	return clamp(result, vec3(0.0f), vec3(1.0f));
 }
 
-glm::vec3 Raytracer::_computeLighting(Intersection& i, const glm::vec3& ro)
+void Raytracer::_computeLighting(Intersection& i, const glm::vec3& ro, vec3& diffuseResult, vec3& specularResult)
 {
-	glm::vec3 result(0.0f);
+	diffuseResult  = vec3(0.0f);
+	specularResult = vec3(0.0f);
+
 	for (auto light : _lights)
 	{
 		float diffuse = light->ComputeDiffuse(i);
@@ -119,14 +126,14 @@ glm::vec3 Raytracer::_computeLighting(Intersection& i, const glm::vec3& ro)
 		float d = glm::distance(i.position, light->position) - light->size;
 		float attenuation = light->intensity / (1.0f + d*d);
 		float shadowFactor = _traceShadows(i, light);
-		result += (i.obj->material.albedo * diffuse * (1.0f - specular) + vec3(specular)) * light->color * attenuation * (1.0f - shadowFactor);
+
+		diffuseResult  += (1.0f - shadowFactor) * attenuation * light->color * i.obj->material.albedo * diffuse;
+		specularResult += (1.0f - shadowFactor) * attenuation * light->color * vec3(specular);
 	}
-	return result;
 }
 
 float Raytracer::_traceShadows(Intersection& i, Light* light)
 {
-	/* Shadowing */
 	float shadowCoeff = 0.0f;
 
 	#pragma omp parallel for

@@ -54,4 +54,8 @@ struct Intersection
 
 		return i;
 	}
+
+	//TODO
+	/*static Intersection RayBox(const Ray& r, Box* b)
+	{}*/
 };

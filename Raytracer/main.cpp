@@ -19,7 +19,7 @@
 #define WINDOW_WIDTH 512
 #define WINDOW_HEIGHT 512
 
-#define MAX_RAY_DEPTH 4
+#define MAX_RAY_DEPTH 8
 
 void onKeyPressed(GLFWwindow* w, int key, int scancode, int action, int mods)
 {
@@ -87,9 +87,9 @@ int main(int argc, char** argv)
 	s2.center = vec3(2.0f, 1.0f, 0.0f);
 	s2.material.albedo = vec3(1.0f, 0.5f, 0.5f);
 	s2.material.shininess = 512.0f;
-	s2.material.reflectivity = 0.5f;
-	s2.material.IOR = 1.33f;
-	s2.material.refractionFactor = 1.0f;
+	s2.material.reflectivity = 0.2f;
+	s2.material.IOR = 1.1f;
+	s2.material.refractionFactor = 0.5f;
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
 

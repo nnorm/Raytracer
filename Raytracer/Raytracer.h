@@ -17,7 +17,7 @@ public:
 	void addLight(Light* light);
 
 private:
-	glm::vec3 _computeLighting(Intersection& i, const glm::vec3& ro);
+	void _computeLighting(Intersection& i, const glm::vec3& ro, vec3& diffuseResult, vec3& specularResult);
 	float _traceShadows(Intersection& i, Light* light);
 	int _width;
 	int _height;
