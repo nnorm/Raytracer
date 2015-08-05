@@ -12,6 +12,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/noise.hpp>
 #include <ctime>
+#include <sstream>
+#include <omp.h>
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
@@ -111,12 +113,17 @@ int main(int argc, char** argv)
 
 	srand(time(NULL));
 
+	float percentage = 0.0f;
+
+	#pragma omp parallel
+	#pragma omp master
+	{
+		std::cout << "Starting on " << omp_get_num_threads() << " threads" << std::endl;
+	}
 
 	#pragma omp parallel for
 	for (int y = 0; y < WINDOW_HEIGHT; y++)
 	{
-		std::cout << "Processing line :" << y << std::endl;
-
 		for (int x = 0; x < WINDOW_WIDTH; x++)
 		{
 			float fx = float(x) / float(WINDOW_WIDTH);
@@ -131,6 +138,12 @@ int main(int argc, char** argv)
 			
 			raytracer.trace(x, y, r, MAX_REFLECT_BOUNCES);
 		}
+
+		percentage += 1.0f / float(WINDOW_HEIGHT);
+
+		std::ostringstream oss;
+		oss << (percentage * 100.0f) << " %" << std::endl;
+		std::cout << oss.str();
 	}
 
 	unsigned int texture;
