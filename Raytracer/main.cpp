@@ -14,6 +14,7 @@
 #include <ctime>
 #include <sstream>
 #include <omp.h>
+#include <chrono>
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
@@ -118,8 +119,10 @@ int main(int argc, char** argv)
 	#pragma omp parallel
 	#pragma omp master
 	{
-		std::cout << "Starting on " << omp_get_num_threads() << " threads" << std::endl;
+		std::cout << " -> Starting on " << omp_get_num_threads() << " threads" << std::endl;
 	}
+
+	auto startNow = std::chrono::high_resolution_clock::now();
 
 	#pragma omp parallel for
 	for (int y = 0; y < WINDOW_HEIGHT; y++)
@@ -145,6 +148,12 @@ int main(int argc, char** argv)
 		oss << (percentage * 100.0f) << " %" << std::endl;
 		std::cout << oss.str();
 	}
+
+	auto endNow = std::chrono::high_resolution_clock::now();
+
+	auto duration = endNow - startNow;
+	typedef std::chrono::duration<float, std::ratio<1, 1>> fseconds;
+	std::cout << " -> Finished in " << std::chrono::duration_cast<fseconds>(duration).count() << " seconds" << std::endl;
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
