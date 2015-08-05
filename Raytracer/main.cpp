@@ -16,10 +16,10 @@
 #include <omp.h>
 #include <chrono>
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 512
+#define WINDOW_HEIGHT 512
 
-#define MAX_REFLECT_BOUNCES 1
+#define MAX_RAY_DEPTH 4
 
 void onKeyPressed(GLFWwindow* w, int key, int scancode, int action, int mods)
 {
@@ -87,8 +87,8 @@ int main(int argc, char** argv)
 	s2.center = vec3(2.0f, 1.0f, 0.0f);
 	s2.material.albedo = vec3(1.0f, 0.5f, 0.5f);
 	s2.material.shininess = 512.0f;
-	s2.material.reflectivity = 1.0f;
-	s2.material.IOR = 1.3333f;
+	s2.material.reflectivity = 0.5f;
+	s2.material.IOR = 1.33f;
 	s2.material.refractionFactor = 1.0f;
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 			r.ro = ro;
 			r.rd = rd;
 			
-			raytracer.trace(x, y, r, MAX_REFLECT_BOUNCES);
+			raytracer.trace(x, y, r, MAX_RAY_DEPTH);
 		}
 
 		#pragma omp atomic
