@@ -142,6 +142,7 @@ int main(int argc, char** argv)
 			raytracer.trace(x, y, r, MAX_REFLECT_BOUNCES);
 		}
 
+		#pragma omp atomic
 		percentage += 1.0f / float(WINDOW_HEIGHT);
 
 		std::ostringstream oss;
