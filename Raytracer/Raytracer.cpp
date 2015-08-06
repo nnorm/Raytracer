@@ -2,7 +2,7 @@
 #include "Intersection.h"
 #include "Light.h"
 
-#define NB_SHADOW_SAMPLE 16
+#define NB_SHADOW_SAMPLE 128
 
 Raytracer::Raytracer(int width, int height)
 	: _width(width),

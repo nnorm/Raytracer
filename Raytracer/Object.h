@@ -6,7 +6,7 @@ enum class ObjectType
 {
 	PLANE,
 	SPHERE,
-
+	BOX,
 	UNDEFINED
 };
 struct Object

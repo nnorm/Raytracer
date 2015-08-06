@@ -16,10 +16,11 @@
 #include <omp.h>
 #include <chrono>
 
-#define WINDOW_WIDTH 512
+#define WINDOW_WIDTH  512
 #define WINDOW_HEIGHT 512
 
 #define MAX_RAY_DEPTH 8
+#define NB_SPLITS     4
 
 void onKeyPressed(GLFWwindow* w, int key, int scancode, int action, int mods)
 {
@@ -79,7 +80,7 @@ int main(int argc, char** argv)
 	s.material.albedo = vec3(0.0f);
 	s.material.shininess = 512.0f;
 	s.material.reflectivity = 1.0f;
-	s.material.F0 = vec3(0.72f, 0.45f, 0.2f);
+	s.material.F0 = vec3(0.678f, 0.435f, 0.411f);
 	s.radius = 1.0f;
 	raytracer.addObject(&s);
 
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
 	s2.material.shininess = 512.0f;
 	s2.material.reflectivity = 0.2f;
 	s2.material.IOR = 1.1f;
-	s2.material.refractionFactor = 0.5f;
+	s2.material.refractionFactor = 0.25f;
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
 
@@ -103,14 +104,14 @@ int main(int argc, char** argv)
 	Light light1;
 	light1.position = vec3(10.0f, 10.0f, 0.0f);
 	light1.size = 2.5f;
-	light1.intensity = 50.0f;
+	light1.intensity = 80.0f;
 	light1.color = vec3(0.5f, 0.5f, 1.0f);
 	raytracer.addLight(&light1);
 	
 	Light light2;
 	light2.position = vec3(-10.0f, 10.0f, 10.0f);
 	light2.size = 2.5f;
-	light2.intensity = 50.0f;
+	light2.intensity = 80.0f;
 	light2.color = vec3(1.0f, 0.5f, 0.5f);
 	raytracer.addLight(&light2);
 
@@ -127,29 +128,40 @@ int main(int argc, char** argv)
 	auto startNow = std::chrono::high_resolution_clock::now();
 
 	#pragma omp parallel for
-	for (int y = 0; y < WINDOW_HEIGHT; y++)
+	for (int split = 0; split < NB_SPLITS * NB_SPLITS; split++)
 	{
-		for (int x = 0; x < WINDOW_WIDTH; x++)
+		int curSplitX = split % NB_SPLITS;
+		int curSplitY = split / NB_SPLITS;
+
+		int minX = curSplitX       * (WINDOW_WIDTH  / NB_SPLITS);
+		int maxX = (curSplitX + 1) * (WINDOW_WIDTH  / NB_SPLITS);
+		int minY = curSplitY       * (WINDOW_HEIGHT / NB_SPLITS);
+		int maxY = (curSplitY + 1) * (WINDOW_HEIGHT / NB_SPLITS);
+
+		for (int y = minY; y < maxY; y++)
 		{
-			float fx = float(x) / float(WINDOW_WIDTH);
-			float fy = float(WINDOW_HEIGHT-y) / float(WINDOW_HEIGHT);
-			fx = fx * 2.0f - 1.0f;
-			fy = fy * 2.0f - 1.0f;
-			vec3 ro = c.getO();
-			vec3 rd = c.calculateRd(vec2(fx, fy));
-			Ray r;
-			r.ro = ro;
-			r.rd = rd;
-			
-			raytracer.trace(x, y, r, MAX_RAY_DEPTH);
+			for (int x = minX; x < maxX; x++)
+			{
+				float fx = float(x) / float(WINDOW_WIDTH);
+				float fy = float(WINDOW_HEIGHT - y) / float(WINDOW_HEIGHT);
+				fx = fx * 2.0f - 1.0f;
+				fy = fy * 2.0f - 1.0f;
+				vec3 ro = c.getO();
+				vec3 rd = c.calculateRd(vec2(fx, fy));
+				Ray r;
+				r.ro = ro;
+				r.rd = rd;
+
+				raytracer.trace(x, y, r, MAX_RAY_DEPTH);
+			}
+
+			#pragma omp atomic
+			percentage += 1.0f / float(WINDOW_HEIGHT * NB_SPLITS);
+
+			std::ostringstream oss;
+			oss << (percentage * 100.0f) << " %" << std::endl;
+			std::cout << oss.str();
 		}
-
-		#pragma omp atomic
-		percentage += 1.0f / float(WINDOW_HEIGHT);
-
-		std::ostringstream oss;
-		oss << (percentage * 100.0f) << " %" << std::endl;
-		std::cout << oss.str();
 	}
 
 	auto endNow = std::chrono::high_resolution_clock::now();
