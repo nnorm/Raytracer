@@ -85,10 +85,10 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 			float ior = i.obj->material.IOR;
 
 			// If we're inside the object, just invert IOR
-			if (glm::dot(i.normal, r.rd) > 0.0f)
+			if (glm::dot(i.normal, r.rd) < 0.0f)
 				refractedRay.rd = refract(r.rd, -i.normal, 1.0f / ior);
 			else
-				refractedRay.rd = refract(r.rd, i.normal, ior);
+				refractedRay.rd = refract(-r.rd, i.normal, ior);
 
 			refractedRay.ro = i.position + 0.01f * refractedRay.rd;
 
