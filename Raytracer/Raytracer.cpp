@@ -2,7 +2,7 @@
 #include "Intersection.h"
 #include "Light.h"
 
-#define NB_SHADOW_SAMPLE 128
+#define NB_SHADOW_SAMPLE 16
 
 Raytracer::Raytracer(int width, int height)
 	: _width(width),
@@ -85,16 +85,16 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 			float ior = i.obj->material.IOR;
 
 			// If we're inside the object, just invert IOR
-			if (glm::dot(i.normal, r.rd) < 0.0f)
-				refractedRay.rd = refract(r.rd, -i.normal, 1.0f / ior);
+			if (glm::dot(i.normal, r.rd) > 0.0f)
+				refractedRay.rd = refract(r.rd, -i.normal, ior);
 			else
-				refractedRay.rd = refract(-r.rd, i.normal, ior);
+				refractedRay.rd = refract(r.rd, i.normal, 1.0f / ior);
 
 			refractedRay.ro = i.position + 0.01f * refractedRay.rd;
 
 
 			vec3 refractedColor = traceSingleRay(refractedRay, currentDepthLevel + 1, maxDepthLevel);
-			diffuseLighting = mix(refractedColor, diffuseLighting, 1.0f - i.obj->material.refractionFactor);
+			diffuseLighting = clamp(mix(refractedColor, diffuseLighting, 1.0f - i.obj->material.refractionFactor), vec3(0.0f), vec3(1.0f));
 		}
 
 		if (i.obj->material.reflectivity > 0.0f && currentDepthLevel < maxDepthLevel)
@@ -108,7 +108,8 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 		}
 
 		vec3 fresnel = glm::mix(i.obj->material.F0, vec3(1.0f), max(0.0f, powf(1.0f - glm::dot(-r.rd, i.normal), 5.0f)));
-		result = mix(diffuseLighting, specularLighting, fresnel);
+		vec3 specularFresnel = clamp(specularLighting * fresnel, vec3(0.0f), vec3(1.0f));
+		result = diffuseLighting * (vec3(1.0f) - specularFresnel) + specularFresnel;
 	}
 
 	return clamp(result, vec3(0.0f), vec3(1.0f));

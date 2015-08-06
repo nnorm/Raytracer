@@ -19,8 +19,8 @@
 #define WINDOW_WIDTH  512
 #define WINDOW_HEIGHT 512
 
-#define MAX_RAY_DEPTH 5
-#define NB_SPLITS     8
+#define MAX_RAY_DEPTH 4
+#define NB_SPLITS     16
 
 void onKeyPressed(GLFWwindow* w, int key, int scancode, int action, int mods)
 {
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 	Raytracer raytracer(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	Camera c;
-	c.viewMatrix = lookAt(vec3(4.5f, 1.5f, 1.25f), vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
+	c.viewMatrix = lookAt(vec3(4.5f, 1.5f, 3.5f), vec3(0.0f), vec3(0.0f, 1.0f, 0.0f));
 	c.projMatrix = perspective(45.0f, float(WINDOW_WIDTH) / float(WINDOW_HEIGHT), 0.1f, 100.0f);
 
 	Sphere s;
@@ -88,9 +88,9 @@ int main(int argc, char** argv)
 	s2.center = vec3(2.0f, 1.0f, 0.0f);
 	s2.material.albedo = vec3(1.0f, 0.5f, 0.5f);
 	s2.material.shininess = 512.0f;
-	s2.material.reflectivity = 0.2f;
-	s2.material.IOR = 1.1f;
-	s2.material.refractionFactor = 1.0f;
+	s2.material.reflectivity = 0.3f;
+	s2.material.IOR = 1.5f;
+	s2.material.refractionFactor = 0.85f;
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
 
