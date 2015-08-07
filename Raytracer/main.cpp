@@ -89,8 +89,8 @@ int main(int argc, char** argv)
 	s2.material.albedo = vec3(1.0f, 0.5f, 0.5f);
 	s2.material.shininess = 512.0f;
 	s2.material.reflectivity = 0.3f;
-	s2.material.IOR = 1.5f;
-	s2.material.refractionFactor = 0.85f;
+	s2.material.IOR = 1.333f;
+	s2.material.refractionFactor = 0.35f;
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
 

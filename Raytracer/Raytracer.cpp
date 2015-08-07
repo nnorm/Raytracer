@@ -78,6 +78,8 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 
 		_computeLighting(i, r.ro, diffuseLighting, specularLighting);
 
+
+		/* Refraction */
 		if (i.obj->material.refractionFactor > 0.0f && currentDepthLevel < maxDepthLevel)
 		{
 			Ray refractedRay;
@@ -97,6 +99,7 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 			diffuseLighting = clamp(mix(refractedColor, diffuseLighting, 1.0f - i.obj->material.refractionFactor), vec3(0.0f), vec3(1.0f));
 		}
 
+		/* Reflection */
 		if (i.obj->material.reflectivity > 0.0f && currentDepthLevel < maxDepthLevel)
 		{
 			Ray reflectedRay;
