@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "Sphere.h"
 #include "Plane.h"
+#include "Box.h"
 
 struct Intersection
 {
@@ -48,7 +49,7 @@ struct Intersection
 		{
 			i.intersects = true;
 			i.position = r.ro + i.t * r.rd;
-			i.normal = p->n;
+			i.normal = normalize(p->n);
 			i.obj = p;
 		}
 
@@ -56,6 +57,33 @@ struct Intersection
 	}
 
 	//TODO
-	/*static Intersection RayBox(const Ray& r, Box* b)
-	{}*/
+	
+	static Intersection RayBox(const Ray& r, Box* b)
+	{
+		Intersection i;
+		float tx1 = (b->minimum.x - r.ro.x) * (1.0f / r.rd.x);
+		float tx2 = (b->maximum.x - r.ro.x) * (1.0f / r.rd.x);
+
+		float tmin = min(tx1, tx2);
+		float tmax = max(tx1, tx2);
+
+		float ty1 = (b->minimum.y - r.ro.y) * (1.0f / r.rd.y);
+		float ty2 = (b->maximum.y - r.ro.y) * (1.0f / r.rd.y);
+
+		tmin = max(tmin, min(ty1, ty2));
+		tmax = min(tmax, max(ty1, ty2));
+
+		float tz1 = (b->minimum.z - r.ro.z) * (1.0f / r.rd.z);
+		float tz2 = (b->maximum.z - r.ro.z) * (1.0f / r.rd.z);
+
+		tmin = max(tmin, min(tz1, tz2));
+		tmax = min(tmax, max(tz1, tz2));
+
+		i.intersects = tmax >= tmin;
+
+		i.position = r.ro + ((tmax >= tmin) ? tmax: tmin) * r.rd;
+
+		return i;
+	}
+	
 };

@@ -90,6 +90,7 @@
     <ClCompile Include="Raytracer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Box.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Intersection.h" />
