@@ -2,7 +2,7 @@
 #include "Intersection.h"
 #include "Light.h"
 
-#define NB_SHADOW_SAMPLE 256
+#define NB_SHADOW_SAMPLE 16
 
 Raytracer::Raytracer(int width, int height)
 	: _width(width),
@@ -58,7 +58,9 @@ glm::vec3 Raytracer::traceSingleRay(const Ray& r, int currentDepthLevel, int max
 		case ObjectType::SPHERE:
 			iCurrent = Intersection::RaySphere(r, static_cast<Sphere*>(o));
 			break;
-
+		case ObjectType::BOX:
+			iCurrent = Intersection::RayBox(r, static_cast<Box*>(o));
+			break;
 		default:
 			std::cout << "Unknown shape" << std::endl;
 			assert(false);
@@ -169,6 +171,9 @@ float Raytracer::_traceShadows(Intersection& i, Light* light)
 				iCurrent = Intersection::RaySphere(rs, static_cast<Sphere*>(o));
 				break;
 
+			case ObjectType::BOX:
+				iCurrent = Intersection::RayBox(rs, static_cast<Box*>(o));
+				break;
 			default:
 				std::cout << "Unknown shape" << std::endl;
 				assert(false);

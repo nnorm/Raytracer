@@ -60,28 +60,80 @@ struct Intersection
 	
 	static Intersection RayBox(const Ray& r, Box* b)
 	{
+		float tmin = -999999999999.9f;
+		float tmax =  999999999999.9f;
+
+		vec3 bmin = b->center - b->extent;
+		vec3 bmax = b->center + b->extent;
+
+		if (r.rd.x != 0.0f)
+		{
+			float tx1 = (bmin.x - r.ro.x) / r.rd.x;
+			float tx2 = (bmax.x - r.ro.x) / r.rd.x;
+
+			tmin = max(tmin, min(tx1, tx2));
+			tmax = min(tmax, max(tx1, tx2));
+		}
+
+		if (r.rd.y != 0.0f)
+		{
+			float ty1 = (bmin.y - r.ro.y) / r.rd.y;
+			float ty2 = (bmax.y - r.ro.y) / r.rd.y;
+
+			tmin = max(tmin, min(ty1, ty2));
+			tmax = min(tmax, max(ty1, ty2));
+		}
+
+		if (r.rd.z != 0.0f)
+		{
+			float tz1 = (bmin.z - r.ro.z) / r.rd.z;
+			float tz2 = (bmax.z - r.ro.z) / r.rd.z;
+
+			tmin = max(tmin, min(tz1, tz2));
+			tmax = min(tmax, max(tz1, tz2));
+		}
+
 		Intersection i;
-		float tx1 = (b->minimum.x - r.ro.x) * (1.0f / r.rd.x);
-		float tx2 = (b->maximum.x - r.ro.x) * (1.0f / r.rd.x);
+		i.intersects = (tmax >= tmin);
 
-		float tmin = min(tx1, tx2);
-		float tmax = max(tx1, tx2);
+		if (i.intersects)
+		{
+			i.position = r.ro + tmin * r.rd;
 
-		float ty1 = (b->minimum.y - r.ro.y) * (1.0f / r.rd.y);
-		float ty2 = (b->maximum.y - r.ro.y) * (1.0f / r.rd.y);
+			vec3  dpos  = i.position - b->center;
+			float dposx = abs(dot(dpos, vec3(1.0f, 0.0f, 0.0f)));
+			float dposy = abs(dot(dpos, vec3(0.0f, 1.0f, 0.0f)));
+			float dposz = abs(dot(dpos, vec3(0.0f, 0.0f, 1.0f)));
 
-		tmin = max(tmin, min(ty1, ty2));
-		tmax = min(tmax, max(ty1, ty2));
+			float dposmax = max(dposx, max(dposy, dposz));
+			if (dposmax == dposx)
+				i.normal = vec3(sign(dot(dpos, vec3(1.0f, 0.0f, 0.0f))), 0.0f, 0.0f);
+			if (dposmax == dposy)
+				i.normal = vec3(0.0f, sign(dot(dpos, vec3(0.0f, 1.0f, 0.0f))), 0.0f);
+			if (dposmax == dposz)
+				i.normal = vec3(0.0f, 0.0f, sign(dot(dpos, vec3(0.0f, 0.0f, 1.0f))));
+		}
+		else
+		{
+			if (tmax >= 0.0f)
+			{
+				i.intersects = true;
+				i.position = r.ro + tmax * r.rd;
 
-		float tz1 = (b->minimum.z - r.ro.z) * (1.0f / r.rd.z);
-		float tz2 = (b->maximum.z - r.ro.z) * (1.0f / r.rd.z);
+				vec3  dpos = i.position - b->center;
+				float dposx = abs(dot(dpos, vec3(1.0f, 0.0f, 0.0f)));
+				float dposy = abs(dot(dpos, vec3(0.0f, 1.0f, 0.0f)));
+				float dposz = abs(dot(dpos, vec3(0.0f, 0.0f, 1.0f)));
 
-		tmin = max(tmin, min(tz1, tz2));
-		tmax = min(tmax, max(tz1, tz2));
-
-		i.intersects = tmax >= tmin;
-
-		i.position = r.ro + ((tmax >= tmin) ? tmax: tmin) * r.rd;
+				float dposmax = max(dposx, max(dposy, dposz));
+				if (dposmax == dposx)
+					i.normal = vec3(sign(dot(dpos, vec3(1.0f, 0.0f, 0.0f))), 0.0f, 0.0f);
+				if (dposmax == dposy)
+					i.normal = vec3(0.0f, sign(dot(dpos, vec3(0.0f, 1.0f, 0.0f))), 0.0f);
+				if (dposmax == dposz)
+					i.normal = vec3(0.0f, 0.0f, sign(dot(dpos, vec3(0.0f, 0.0f, 1.0f))));
+			}
+		}
 
 		return i;
 	}

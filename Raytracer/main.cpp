@@ -16,8 +16,8 @@
 #include <omp.h>
 #include <chrono>
 
-#define WINDOW_WIDTH  1680
-#define WINDOW_HEIGHT 1050
+#define WINDOW_WIDTH  512
+#define WINDOW_HEIGHT 512
 
 #define MAX_RAY_DEPTH 4
 #define NB_SPLITS     32
@@ -94,8 +94,15 @@ int main(int argc, char** argv)
 	s2.radius = 1.0f;
 	raytracer.addObject(&s2);
 
+	Box b1;
+	b1.center = vec3(0.0f, 0.0f, 0.0f);
+	b1.extent = vec3(512.0f);
+	b1.material.albedo = vec3(1.0f, 0.5f, 0.5f);
+	b1.material.refractionFactor = 0.0f;
+	raytracer.addObject(&b1);
+
 	Plane p;
-	p.n = vec3(0.25f, 0.75f, 0.0f);
+	p.n = vec3(0.0f, 1.0f, 0.0f);
 	p.d = 1.5f;
 	p.material.albedo = vec3(0.75f);
 	p.material.reflectivity = 0.75f;
@@ -153,6 +160,7 @@ int main(int argc, char** argv)
 				r.rd = rd;
 
 				raytracer.trace(x, y, r, MAX_RAY_DEPTH);
+				glfwPollEvents();
 			}
 
 			#pragma omp atomic
